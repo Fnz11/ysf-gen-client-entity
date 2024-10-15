@@ -1,0 +1,140 @@
+import TextWithIcon from "@/components/Public/Table/CellWithIcon";
+import SortedHeadTable from "@/components/Public/Table/SortedHeadTable";
+import TableAction from "@/components/Public/Table/TableAction";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { use{{entityNameCap}}Store } from "@/stores/{{entityNameCap}}Store";
+import { delete{{entityNameCap}} } from "@/utils/{{entityName}}-api";
+import { useMutation } from "@tanstack/react-query";
+import { CellContext, ColumnDef } from "@tanstack/react-table";
+import { Check, EllipsisVertical, Key, X } from "lucide-react";
+import Image from "next/image";
+import toast from "react-hot-toast"; 
+import { Badge } from "@/components/ui/badge";
+import Copy from "@/components/Public/Copy";
+
+const Menu = ({ info }: { info: CellContext<any, any> }) => {
+  const {
+    openInfo,
+    setOpenInfo,
+    setSelectedIdInfo,
+    setIsSelectedRowInfo,
+    setHandleSelectInfo,
+    refetch,
+  } = use{{entityNameCap}}Store();
+
+  const mutateDelete = useMutation({
+    mutationFn: (id: string) => delete{{entityNameCap}}(id),
+    onSuccess: () => {
+      toast.success("Item berhasi dihapus");
+      refetch();
+    },
+    onError: (error) => {
+      console.log("[ERROR DELETE]: ", error);
+      toast.error("Item gagal dihapus");
+    },
+  });
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <EllipsisVertical className="h-4 w-4" strokeWidth={1.5} />
+      </DropdownMenuTrigger>
+      <TableAction
+        infoProps={ {
+          setId: setSelectedIdInfo,
+          openState: openInfo,
+          setOpen: setOpenInfo,
+          setHandleSelect: setHandleSelectInfo,
+          setIsSelectedRow: setIsSelectedRowInfo,
+        } }
+        row={info.row}
+        deleteAction={mutateDelete as any}
+        editLink={`/{{entityName}}/mutate/${info.getValue()}`}
+        id={info.getValue() as string}
+      />
+    </DropdownMenu>
+  );
+};
+
+export const {{entityNameCap}}TableColumns: ColumnDef<{{entityNameCap}}Props | any>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    minSize: 2,
+    maxSize: 2,
+    size: 2,
+    enableSorting: false,
+    enableHiding: false,
+  }, 
+  {{#each imageFields}}  
+  {
+    accessorKey: "{{name}}",
+    header: (info) => <SortedHeadTable info={info} title="{{kebabToCamel name}}" />,
+
+    cell: (info) => (
+      <div className="flex items-center justify-center h-12 w-12 relative mx-auto">
+        <Image
+            src={(info?.getValue() as any)?.url || "/Abs1.jpg"}
+            alt="{{name}}"
+            className="size-full rounded-2xl"
+            width={100}
+            height={100}
+          />
+      </div>
+    ),
+    minSize: 10,
+    maxSize: 10,
+    size: 10,
+    enableSorting: false,
+  },
+  {{/each}}{{#each tableHeader}}{
+    accessorKey: "{{name}}",
+    header: (info) => <SortedHeadTable info={info} title="{{kebabToCamel name}}" />,
+
+    cell: (info) => (
+      <div className="gap-2 font-medium {{#if (eq name ../idName)}}truncate w-28 flex{{/if}}">
+        {{#if (eq name ../idName)}} <span>
+          <Copy data={info.getValue() as string} />
+        </span>{{/if}}{ {{#if (or (eq type "DateTime") (eq type "Date"))}}new Date(info.getValue() as string)?.toLocaleDateString(){{else}}info.getValue() as string{{/if}} }</div>
+    ),
+    minSize: 20,
+    maxSize: 20,
+    size: 20,
+  }, 
+  {{/each}} 
+  // {{kebabToCamel idName}}
+  {
+    accessorKey: "{{idName}}",
+    header: (info) => <span></span>,
+    cell: (info) => <Menu info={info} />,
+    minSize: 2,
+    maxSize: 2,
+    size: 2,
+  },
+];

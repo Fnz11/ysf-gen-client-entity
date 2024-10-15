@@ -1,0 +1,388 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody, 
+} from "@/components/ui/table";
+import Header from "@/components/ui/title";
+import { 
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+import { TableProperties } from "lucide-react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
+// import { KlasifikasiFilter } from "./KlasifikasiFilter";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+import { debounce } from "lodash";
+import PaginationTable from "@/components/Public/Table/PaginationTable";
+import ShowDataFilterTable from "@/components/Public/Table/ShowDataFilterTable";
+import CariCepatFilter from "@/components/Public/Table/CariCepatFilter";
+import CellContextMenuTable from "@/components/Public/Table/CellContextMenuTable";
+import MobileMenu from "@/components/Public/MobileMenu";
+import { AnimatePresence } from "framer-motion";
+import DeleteDialog from "@/components/Public/DeleteDialog";
+import DownloadButton from "@/components/Public/DownloadButton";
+import CreateButton from "@/components/Public/CreateButton";
+import DeleteButton from "@/components/Public/DeleteButton";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { {{entityNameCap}}TableColumns } from "./{{entityNameCap}}TableColumns";
+import { use{{entityNameCap}}Store } from "@/stores/{{entityNameCap}}Store";
+import {
+  createBatch{{entityNameCap}},
+  create{{entityNameCap}},
+  Mutate{{entityNameCap}}SchemaProps,
+  delete{{entityNameCap}},
+  delete{{entityNameCap}}Batch,
+  download{{entityNameCap}},
+  getAll{{entityNameCap}},
+} from "@/utils/{{entityName}}-api";
+import { {{entityNameCap}}Filter } from "./{{entityNameCap}}Filter";
+import { Card } from "@/components/ui/card";
+import RefetchButton from "@/components/Public/Table/RefetchButton";
+import {{entityNameCap}}Info from "./{{entityNameCap}}Info";
+import TableClientContainer from "@/components/Layout/TableClientContainer";
+import NoResultTable from "@/components/Public/Table/NoResultTable";
+import BaseTableHead from "@/components/Public/Table/BaseTable";
+
+type {{entityNameCap}}ClientProps = {
+  initialData: {
+    {{entityName}}: {{entityNameCap}}Props[];
+    totalData: number;
+  };
+};
+
+const {{entityNameCap}}Client: React.FC<{{entityNameCap}}ClientProps> = ({ initialData }) => {
+  console.log(initialData);
+  // ============================== STATE & INIT ==============================
+  const {
+    setGlobal{{entityNameCap}}Data,
+    setRefetch,
+    setSelectedIdInfo,
+    openInfo,
+    setOpenInfo,
+    setHandleSelectInfo,
+    setIsSelectedRowInfo,
+  } = use{{entityNameCap}}Store();
+  // Url Filter 
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { push } = useRouter();
+
+  // Filter
+  const [{{entityName}}Data, set{{entityNameCap}}Data] = useState<{{entityNameCap}}Props[]>([
+    ...(initialData?.{{entityName}} || []),
+  ]);
+  {{#each fieldsFilter}}
+  const {{key}}_q = searchParams.get("{{key}}") || "{{#if (eq key "page")}}1{{else if (eq key "limit")}}10{{/if}}";
+  {{/each}}   
+
+  const [{ searchQuery, searchShadow }, setSearchQuery] = useState({
+    searchQuery: {{#if searchField}}{{searchField}}_q ||{{/if}} "",
+    searchShadow: {{#if searchField}}{{searchField}}_q ||{{/if}} "",
+  });
+  const [{ pageIndex, pageSize }, setPagination] =
+    React.useState<PaginationState>({
+      pageIndex: parseInt(page_q) - 1,
+      pageSize: parseInt(limit_q),
+    });
+  const [paginationShadow, setPaginationShadow] = useState<number | string>(
+    page_q
+  );
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  // Table
+  const table = useReactTable({
+    data: {{entityName}}Data,
+    columns: {{entityNameCap}}TableColumns,
+    getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onPaginationChange: setPagination,
+    getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    pageCount: initialData?.totalData
+      ? Math.ceil(initialData?.totalData / parseInt(limit_q))
+      : 0,
+    state: {
+      sorting,
+      pagination: {
+        pageIndex: parseInt(page_q),
+        pageSize: parseInt(limit_q),
+      },
+    },
+    manualPagination: true,
+    manualFiltering: true,
+  });
+
+  // ============================== HANDLE ==============================
+  useEffect(() => {
+    if (!initialData) return;
+    setGlobal{{entityNameCap}}Data(initialData.{{entityName}} || []);
+    set{{entityNameCap}}Data(initialData?.{{entityName}} || []);
+  }, [initialData]);
+
+  // Refetching data
+  const query{{entityNameCap}} = useQuery({
+    queryKey: ["{{entityName}}", searchQuery, pageIndex, pageSize],
+    enabled: {{entityName}}Data?.length === 0,
+
+    queryFn: () =>
+      getAll{{entityNameCap}}({
+       {{#each fieldsFilter}}
+       {{key}}: {{key}}_q{{#if (eq type "boolean")}}== "-" ? "":{{key}}_q{{/if}},
+       {{/each}}  
+      }),
+  });
+
+  // Refetching data
+  useEffect(() => {
+    if (!query{{entityNameCap}}.isSuccess) return;
+    setGlobal{{entityNameCap}}Data(query{{entityNameCap}}?.data?.data?.data?.{{entityName}} || []);
+    set{{entityNameCap}}Data(query{{entityNameCap}}?.data?.data?.data?.{{entityName}} || []);
+  }, [
+    query{{entityNameCap}}.isSuccess,
+    query{{entityNameCap}}.isFetched,
+    query{{entityNameCap}}.data,
+    query{{entityNameCap}}.isLoading,
+  ]);
+
+  // Delete one
+  const mutateDelete = useMutation({
+    mutationFn: (id: string) => delete{{entityNameCap}}(id),
+    onSuccess: () => {
+      toast.success("Delete {{entityNameCap}} successfully");
+      query{{entityNameCap}}.refetch();
+    },
+    onError: (error) => {
+      console.log("[ERROR DELETE]: ", error);
+      toast.error("Delete {{entityNameCap}} failed");
+    },
+  });
+
+  // Create
+  const mutateCreate{{entityNameCap}} = useMutation({
+    mutationKey: ["create{{entityNameCap}}"],
+    mutationFn: (data: Mutate{{entityNameCap}}SchemaProps) => create{{entityNameCap}}(data),
+    onSuccess: (res) => {
+      toast.success("{{entityNameCap}} added successfully");
+    },
+    onError: (err) => {
+      toast.error("{{entityNameCap}} added failed");
+    },
+  });
+
+  // Delete batch
+  const mutateDeleteBatch = useMutation({
+    mutationFn: () => {
+      const selected{{entityNameCap}} = table.getSelectedRowModel().flatRows.map((row) => {
+        return row.original.{{idName}}.toString();
+      });
+
+      return delete{{entityNameCap}}Batch(selected{{entityNameCap}});
+    },
+    onSuccess: (res) => {
+      table.resetRowSelection();
+      query{{entityNameCap}}.refetch();
+    },
+    onError: (error) => {
+      console.log("[ERROR DELETE]: ", error);
+    },
+  });
+
+  // Create Batch
+  const mutateCreateBatch = useMutation({
+    mutationFn: (file: File) => createBatch{{entityNameCap}}(file),
+    onSuccess: () => {
+      query{{entityNameCap}}.refetch();
+    },
+    onError: (error) => {
+      query{{entityNameCap}}.refetch();
+      console.log("[ERROR CREATE BATCH]: ", error);
+    },
+  });
+
+  const createQueryString = useCallback(
+    (params: Record<string, string | number | null>) => {
+      const newSearchParams = new URLSearchParams(searchParams?.toString());
+
+      for (const [key, value] of Object.entries(params)) {
+        if (!value || (typeof value == "string" && value.length == 0)) {
+          newSearchParams.delete(key);
+        } else {
+          newSearchParams.set(key, String(value));
+        }
+      }
+
+      return newSearchParams.toString();
+    },
+    [searchParams]
+  ); 
+
+  useEffect(() => { 
+    setRefetch(query{{entityNameCap}}.refetch);
+  }, []);
+
+  useEffect(() => {
+    push(
+      `${pathname}?${createQueryString({
+       {{#each fieldsFilter}}
+        {{key}}: {{#if (eq key ../searchField)}}searchQuery{{else if (eq type "number")}}parseInt({{key}}_q){{else}}{{key}}_q{{#if (eq type "boolean")}}== "-" ? "":{{key}}_q{{/if}}{{/if}},
+        {{/each}}  
+      })}`,
+      {
+        scroll: false,
+      }
+    );
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pageIndex,
+    pageSize,
+    searchQuery,
+    {{#each fieldsFilter}}
+    {{key}}_q,{{/each}}  
+  ]);
+
+  const debouncedHandleChangePage = useCallback(
+    debounce((page: number) => {
+      table.setPageIndex(page - 1);
+    }, 500),
+    [table]
+  );
+
+  const debouncedHandleSearch = useCallback(
+    debounce((term: string) => {
+      setSearchQuery({ searchQuery: term, searchShadow: term });
+    }, 500), // 500ms delay
+    []
+  );
+
+  // ============================== RENDER ==============================
+  return (
+    <TableClientContainer>
+      {/* Top */}
+      <Card className="w-full flex justify-between items-center p-6 gap-4">
+        <Header
+          title="{{entityNameCap}}"
+          description="Manage and view {{entityName}} information."
+          Icon={TableProperties}
+        />
+
+        <MobileMenu className="flex max-md:flex-col-reverse gap-2 max-md:w-fit">
+          {/* Delete */}
+          <AnimatePresence>
+            <DeleteDialog
+              trigger={
+                <DeleteButton
+                  active={table?.getSelectedRowModel()?.flatRows?.length > 0}
+                />
+              }
+              active={table?.getSelectedRowModel()?.flatRows?.length > 0}
+              isBatch
+              onDeleteBatch={mutateDeleteBatch}
+              onDelete={mutateDelete}
+            />
+          </AnimatePresence>
+
+          {/* Create */}
+          <CreateButton
+            name="data-{{entityName}}"
+            handleDownload={async () => await download{{entityNameCap}}(true)}
+            href={"/{{entityName}}/mutate/create"}
+            onCreate={mutateCreate{{entityNameCap}} }
+            onCreateBatch={mutateCreateBatch}
+          />
+        </MobileMenu>
+      </Card>
+
+      {/* Content */}
+      <Card className="w-full h-full flex flex-col gap-5">
+        {/* Filter2 */}
+        <div className="w-full flex justify-between gap-3">
+          <{{entityNameCap}}Filter
+            nama={searchShadow}
+            show={table.getState().pagination.pageSize}
+            createQueryString={createQueryString}
+          />
+          {/* Search */}
+          <CariCepatFilter
+            placeholder="Search by {{#if searchField}}{{kebabToCamel searchField}}{{else}}{{entityName}}{{/if}}"
+            debouncedHandleSearch={debouncedHandleSearch} 
+            searchShadow={searchShadow}
+            setSearchQuery={setSearchQuery}
+          />
+          {/* Download */}
+          <DownloadButton name="data-{{entityName}}.xlsx" api={download{{entityNameCap}} } />
+          {/* Refetch */}
+          <RefetchButton refetch={() => query{{entityNameCap}}.refetch()} />
+        </div>
+
+        {/* Table */}
+        <div className="h-[62vh] rounded-xl border overflow-hidden">
+          <ScrollArea className="h-full w-full overflow-y-auto">
+          {{#if (gt fields 6)}}
+           <ScrollBar orientation="horizontal" />
+            <ScrollArea className="h-full w-[120%] overflow-y-auto">
+              <ScrollBar orientation="vertical" />
+              {{/if}}<Table className="h-full">
+                <BaseTableHead table={table} />
+                <TableBody className="h-full w-full">
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <CellContextMenuTable
+                        infoProps={ {
+                          id: row.original?.{{idName}}?.toString(),
+                          setId: setSelectedIdInfo,
+                          openState: openInfo,
+                          setOpen: setOpenInfo,
+                          setHandleSelect: setHandleSelectInfo,
+                          setIsSelectedRow: setIsSelectedRowInfo,
+                        } }
+                        key={row.id}
+                        editLink={`/{{entityName}}/mutate/${row.original.{{idName}} }`}
+                        row={row}
+                        deleteAction={mutateDelete}
+                        className="h-16"
+                        id={row.original.{{idName}}?.toString()}
+                      />
+                    ))
+                  ) : (
+                    <NoResultTable colSpan={ {{entityNameCap}}TableColumns.length} />
+                  )}
+                </TableBody>
+              </Table>
+              {{#if (gt fields 6)}}
+            </ScrollArea>
+          {{/if}}</ScrollArea>
+        </div>
+
+        {/* Filter2 */}
+        <div className="w-full flex justify-between">
+          <ShowDataFilterTable table={table} />
+
+          <div>
+            <PaginationTable
+              debouncedHandleChangePage={debouncedHandleChangePage}
+              paginationShadow={paginationShadow}
+              setPaginationShadow={setPaginationShadow}
+              table={table}
+              totalPage={Math.ceil(initialData.totalData / pageSize)}
+            />
+          </div>
+        </div>
+      </Card>
+
+      <{{entityNameCap}}Info />
+    </TableClientContainer>
+  );
+};
+
+export default {{entityNameCap}}Client;

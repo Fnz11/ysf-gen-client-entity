@@ -1,0 +1,129 @@
+import React from "react";
+import { useMediaQuery } from "@custom-react-hooks/use-media-query";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import { Info } from "lucide-react";
+import { use{{entityNameCap}}Store } from "@/stores/{{entityNameCap}}Store";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import TextWithIcon from "@/components/Public/Table/CellWithIcon";
+import { Badge } from "@/components/ui/badge";
+
+const {{entityNameCap}}UI = {
+  title: (
+    <span className="flex items-center justify-center font-medium w-fit gap-2">
+      <Info className="md:w-7 md:h-7 w-6 h-6 text-primary" /> {{entityNameCap}} Info
+    </span>
+  ),
+};
+
+const {{entityNameCap}}Info: React.FC = () => {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const {
+    global{{entityNameCap}}Data,
+    openInfo,
+    setOpenInfo,
+    selectedIdInfo,
+    handleSelectInfo,
+    setSelectedIdInfo,
+    isSelectedRow,
+  } = use{{entityNameCap}}Store();
+
+  if (isDesktop) {
+    return (
+      <Dialog open={openInfo} onOpenChange={setOpenInfo}>
+        <DialogContent className="sm:max-w-[40rem] {{#if (gt fields 9)}}sm:h-[40rem]{{else}}sm:max-h-[40rem]{{/if}}">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{ {{entityNameCap}}UI.title}</DialogTitle>
+          </DialogHeader>
+          <Data{{entityNameCap}}InfoContent
+            data={
+              global{{entityNameCap}}Data.find(
+                (item) => item.{{idName}}?.toString() == selectedIdInfo
+              ) as {{entityNameCap}}Props
+            }
+          />
+          <DialogFooter className="flex items-center justify-end">
+            <DialogClose>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+            <Button
+              variant="default"
+              onClick={() => {
+                if (handleSelectInfo) {
+                  handleSelectInfo();
+                }
+                setOpenInfo(false);
+                setSelectedIdInfo("");
+              } }
+            >
+              {isSelectedRow ? "Unselect" : "Select"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={openInfo} onOpenChange={setOpenInfo}>
+      <DrawerContent>
+        <DrawerHeader className="text-left">
+          <DrawerTitle>{ {{entityNameCap}}UI.title}</DrawerTitle>
+        </DrawerHeader>
+        <Data{{entityNameCap}}InfoContent
+          data={
+            global{{entityNameCap}}Data.find(
+              (item) => item.{{idName}}?.toString() == selectedIdInfo
+            ) as {{entityNameCap}}Props
+          }
+        />
+      </DrawerContent>
+    </Drawer>
+  );
+};
+
+type Data{{entityNameCap}}InfoProps = {
+  data: {{entityNameCap}}Props;
+};
+
+const Data{{entityNameCap}}InfoContent: React.FC<Data{{entityNameCap}}InfoProps> = ({ data }) => {
+  console.log(data);
+  return (
+    <ScrollArea className="h-full pr-4">
+      <div className="w-full h-full flex flex-col gap-6 items-center justify-center">
+        <Separator />
+        
+         {{#each fields}}
+         {{#if (eq type "unknown")}}{{else}}
+          {/* {{kebabToCamel name }} */}
+          <h1 className="w-full flex justify-between">
+            <span className="text-foreground/50 capitalize">{{kebabToCamel name}}</span>
+            <span className="text-foreground/80 max-w-[70%] text-end">
+              { {{#if (eq type "Date")}}new Date(data?.{{name}})?.toLocaleDateString(){{else}}data?.{{name}}{{/if}} }
+            </span>
+          </h1>
+         {{/if}}
+         {{/each}}  
+
+        <Separator />
+      </div>
+    </ScrollArea>
+  );
+};
+
+export default {{entityNameCap}}Info;

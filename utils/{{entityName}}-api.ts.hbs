@@ -1,0 +1,125 @@
+import axiosInstance from "@/lib/axios";
+import { z } from "zod";
+import { getUrlFilter } from "./url-filter";
+
+// ==================== VALIDATION ====================
+// Create {{ entityNameCap }} Schema Validator
+{{{ zodValidator }}}
+
+// ==================== TYPES ====================
+
+export type Mutate{{ entityNameCap }}SchemaProps = z.infer<typeof mutate{{ entityNameCap }}Schema>;
+
+// ==================== API ====================
+
+// GET ALL
+export const getAll{{ entityNameCap }} = async ({
+    {{#each fieldsFilter}}
+    {{key}},
+    {{/each}} 
+}: {{ entityNameCap }}SearchParamsProps,
+  token?: string
+) => {
+  const url = getUrlFilter({
+    base: "/{{ entityName }}",
+    {{#each fieldsFilter}}
+    {{key}}: {{#if (eq type "Date")}}{{key}} ? new Date({{key}})?.toLocaleDateString() : null{{else if (eq type "string")}}{{key}}?.trim(){{else}}{{key}}{{/if}},
+    {{/each}} 
+  });
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    return await axiosInstance.get(url, { headers });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// GET BY ID
+export const get{{ entityNameCap }}ById = async (id: string, token?: string) => {
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    return await axiosInstance.get(`/{{ entityName }}/${id}`);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// CREATE BATCH
+export const createBatch{{ entityNameCap }} = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    return await axiosInstance.post("/{{ entityName }}/batch", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+// CREATE
+export const create{{ entityNameCap }} = async (data: Mutate{{ entityNameCap }}SchemaProps) => {
+  console.log(data);
+  try {
+    return await axiosInstance.post("/{{ entityName }}", data);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// UPDATE
+export const update{{ entityNameCap }} = async (
+  id: string,
+  data: Mutate{{ entityNameCap }}SchemaProps
+) => {
+  console.log(data);
+  try {
+    return await axiosInstance.patch("/{{ entityName }}/" + id, data);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// DELETE
+export const delete{{ entityNameCap }} = async (id: string) => {
+  try {
+    return await axiosInstance.delete(`/{{ entityName }}/${id}`);
+  } catch (error) {
+    throw error;
+  }
+};
+
+// DELETE BATCH
+export const delete{{ entityNameCap }}Batch = async (ids: string[]) => {
+  try {
+    return await axiosInstance.post(`/{{ entityName }}/delete/batch`, {
+      ids: [...ids],
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+// DOWNLOAD
+export const download{{ entityNameCap }} = async (template?: boolean) => {
+  try {
+    const res = await axiosInstance.get(
+      `/{{ entityName }}/download${!!template ? "/template" : "/default"}`,
+      {
+        headers: {
+          "Content-Type":
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+        responseType: "blob",
+      }
+    );
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};

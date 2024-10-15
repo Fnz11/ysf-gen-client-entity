@@ -1,0 +1,218 @@
+"use client";
+import { Card } from "@/components/ui/card";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Factory, Forward, NotebookTabs,PlusCircle, X } from "lucide-react";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import Title from "@/components/ui/title";
+import { useRouter } from "next/navigation";
+import {
+  create{{entityNameCap}},
+  mutate{{entityNameCap}}Schema,
+  Mutate{{entityNameCap}}SchemaProps,
+  update{{entityNameCap}},
+} from "@/utils/{{entityName}}-api";
+import MutateButton from "@/components/Public/Mutate/MutateButton"; 
+import Header from "@/components/ui/title";
+import SuffixClearInput from "@/components/Public/SuffixClearInput";
+import DatePickerV2 from "@/components/ui/date-picker-v2";
+import ImageUpload from "@/components/ui/image-upload";
+import { Combobox } from "@/components/ui/combobox";
+{{#each fieldsChunks as |chunk|}}{{#each chunk as |field|}}
+{{#if field.isRelation}}  
+import { getAll{{capitalize field.relationWith}} } from "@/utils/{{field.relationWith}}-api";
+{{/if}}
+{{/each}}{{/each}}
+
+type MutateClientProps = {
+  data: any;
+};
+
+const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
+  console.log(initData);
+  // 1. Define your form.
+  const form = useForm<Mutate{{entityNameCap}}SchemaProps>({
+    resolver: zodResolver(mutate{{entityNameCap}}Schema),
+  });
+
+  useEffect(() => {
+    if (initData) {
+      form.reset(initData);
+    }
+  }, [initData, form]);
+
+  const { mutate: mutateCreate{{entityNameCap}}, isPending } = useMutation({
+    mutationKey: ["mutate{{entityNameCap}}"],
+    mutationFn: (data: Mutate{{entityNameCap}}SchemaProps) => {
+      if (initData) {
+        return update{{entityNameCap}}(initData.{{idName}}, data);
+      } else {
+        return create{{entityNameCap}}(data);
+      }
+    },
+    onSuccess: (res) => {
+      toast.success("{{entityNameCap}} mutate successfully");
+      if (window) {
+        window.location.pathname = "/{{entityName}}";
+      }
+    },
+    onError: (err) => {
+      toast.error("{{entityNameCap}} mutate error");
+    },
+  });
+
+  // 2. Define a submit handler.
+  function onSubmit(values: Mutate{{entityNameCap}}SchemaProps) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+    mutateCreate{{entityNameCap}}(values);
+    console.log(values);
+  }
+
+  return (
+    <Form {...form}>
+      <form
+       onSubmit={(e) => {
+        e.preventDefault();
+
+        const validationResult = mutate{{entityNameCap}}Schema.safeParse(form.getValues());
+
+        if (!validationResult.success) {
+          console.log(form.getValues());
+          toast.error(
+            validationResult.error.errors[0].path[0] +
+              ": " +
+              validationResult.error.errors[0].message || "Invalid input"
+          );
+          return;
+        }
+        onSubmit(form.getValues());
+      } }
+        className="flex flex-col items-center justify-center size-full"
+      >
+        {/* Top */}
+        <Card className="w-full flex flex-col justify-between p-6 gap-4">
+          <div className="flex justify-between">
+            <Header
+              title={initData ? "Edit {{entityNameCap}}" : "Create {{entityNameCap}}"}
+              description={
+                initData
+                  ? "Edit the details of an existing {{entityName}}."
+                  : "Add a new {{entityName}} to the system."
+              }
+              Icon={PlusCircle}
+            />
+
+            <MutateButton loading={isPending} />
+          </div> 
+        </Card>
+
+        <div className="w-full flex items-center justify-center">
+          <div className="w-[99%] md:w-[50%] flex flex-col gap-4 p-4">
+            {{#each fieldsChunks as |chunk|}}
+              <Card className="w-full flex flex-col gap-2">
+                {{#each chunk as |field|}}  
+                  {{#if (or field.isId (or (eq field.name "created_at") (eq field.name "updated_at")))}}
+                  {{else}}
+                    <FormField
+                      control={form.control}
+                      name="{{field.name}}"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel required={false} className="capitalize">{{kebabToCamel field.name}}</FormLabel>
+                          <FormControl>
+                            {{#if field.isRelation }}
+                              <Combobox
+                                id="{{field.name}}"
+                                getData={async (search) => {
+                                  const res = await getAll{{capitalize field.relationWith}}({ {{ field.relationSearch }}: search }); 
+                                  const finalData = res.data.data.{{ field.relationWith }}.map(
+                                    (item: any) => ({
+                                      value: item?.{{field.relationToField}},
+                                      label: item?.{{field.relationSearch}},
+                                      description:
+                                        item?.{{field.relationToField}},
+                                    })
+                                  ); 
+                                  return finalData;
+                                } }
+                                onChange={(value) => field.onChange(value)}
+                                value={field.value}
+                                
+                                placeholder="Enter {{ field.relationWith }} id here"
+                              />
+                            {{else if (eq field.type "Boolean")}}
+                              <Switch
+                                {...field}
+                                checked={field.value as boolean}
+                                onChange={(e) => field.onChange(e.target.checked)}
+                              />
+                            {{else if (or (eq field.type "Date") (eq field.type "DateTime"))}}
+                              <DatePickerV2
+                                {...field}
+                                placeholder="Enter {{kebabToCamel field.name}} here"
+                                isDeletable
+                                onChange={(date) => field.onChange(date)}
+                              />
+                            {{else}}
+                              <Input
+                                onChange={(e) => field.onChange({{#if (or (eq field.type "Int") (eq field.type "Float"))}}parseInt(e.target.value){{else}}e.target.value{{/if}})}
+                                value={field.value}
+                                {{#if (or (eq field.type "Int") (eq field.type "Float"))}}type="number"{{/if}}
+                                suffix={
+                                  <SuffixClearInput
+                                    condition={(field.value{{#if (eq field.type "String")}}?.length{{/if}} as number) > 0}
+                                    onClick={() => field.onChange({{#if (eq field.type "String")}}""{{else}}0{{/if}})}
+                                  />
+                                }
+                                placeholder="Enter {{kebabToCamel field.name}} here"
+                              />
+                            {{/if}}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  {{/if}}
+                {{/each}}
+              </Card>
+            {{/each}}
+            {{#if imageFields}} 
+             <Card className="w-full flex flex-col gap-2">
+               {{#each imageFields}}
+                 <FormField
+                      control={form.control}
+                      name="{{name}}"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel required={false} className="capitalize">{{kebabToCamel name}}</FormLabel>
+                          <FormControl>
+                             <ImageUpload onChange={(e) => field.onChange(e)} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+               {{/each}}
+             </Card>
+             {{/if}}
+          </div>
+        </div>
+      </form>
+    </Form>
+  );
+};
+
+export default MutateClient;
