@@ -199,7 +199,7 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                         <FormItem>
                           <FormLabel required={false} className="capitalize">{{kebabToCamel name}}</FormLabel>
                           <FormControl>
-                             <ImageUpload onChange={(e) => field.onChange(e)} />
+                             <ImageUpload onChange={(e) => field.onChange(e)} value={field.value} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
