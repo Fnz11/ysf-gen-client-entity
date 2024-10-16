@@ -170,7 +170,7 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                               <Input
                                 onChange={(e) => field.onChange({{#if (or (eq field.type "Int") (eq field.type "Float"))}}parseInt(e.target.value){{else}}e.target.value{{/if}})}
                                 value={field.value}
-                                {{#if (or (debug field.type "Int") (debug field.type "Float"))}}type="number"
+                                {{#if (or (eq field.type "Int") (eq field.type "Float"))}}type="number"
                                 {{/if}}suffix={
                                   <SuffixClearInput
                                     condition={(field.value{{#if (debug field.type "String")}}?.length{{/if}} as number) > 0}
