@@ -170,11 +170,11 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                               <Input
                                 onChange={(e) => field.onChange({{#if (or (eq field.type "Int") (eq field.type "Float"))}}parseInt(e.target.value){{else}}e.target.value{{/if}})}
                                 value={field.value}
-                                {{#if (or (eq field.type "Int") (eq field.type "Float"))}}type="number"{{/if}}
-                                suffix={
+                                {{#if (or (debug field.type "Int") (debug field.type "Float"))}}type="number"
+                                {{/if}}suffix={
                                   <SuffixClearInput
-                                    condition={(field.value{{#if (eq field.type "String")}}?.length{{/if}} as number) > 0}
-                                    onClick={() => field.onChange({{#if (eq field.type "String")}}""{{else}}0{{/if}})}
+                                    condition={(field.value{{#if (debug field.type "String")}}?.length{{/if}} as number) > 0}
+                                    onClick={() => field.onChange({{#if (debug field.type "String")}}""{{else}}0{{/if}})}
                                   />
                                 }
                                 placeholder="Enter {{kebabToCamel field.name}} here"
