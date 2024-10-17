@@ -158,9 +158,10 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                                     (item: any) => ({
                                       value: item?.{{field.relationToField}},
                                       label: item?.{{field.relationSearch}},
+                                      {{#if (eq field.relationSearch field.relationToField) }}{{else}}
                                       description:
                                         item?.{{field.relationToField}},
-                                    })
+                                      {{/if}} })
                                   ); 
                                   return finalData;
                                 } }
