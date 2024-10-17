@@ -146,10 +146,13 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                         <FormItem>
                           <FormLabel required={false} className="capitalize">{{kebabToCamel field.name}}</FormLabel>
                           <FormControl>
-                            {{#if field.isRelation }}
+                            {{#if (or field.isRelation field.relType) }}
                               <Combobox
                                 id="{{field.name}}"
-                                getData={async (search) => {
+                                {{#if (eq field.relType "m-m")}}
+                                multiple
+                                alwaysOpen
+                                {{/if}}getData={async (search) => {
                                   const res = await getAll{{capitalize field.relationWith}}({ {{ field.relationSearch }}: search }); 
                                   const finalData = res.data.data.{{ field.relationWith }}.map(
                                     (item: any) => ({
@@ -164,7 +167,7 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                                 onChange={(value) => field.onChange(value)}
                                 value={field.value}
                                 
-                                placeholder="Enter {{ field.relationWith }} id here"
+                                placeholder="Enter {{ field.relationSearch }} here"
                               />
                             {{else if (eq field.type "Boolean")}}
                               <Switch
