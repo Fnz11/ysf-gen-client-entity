@@ -99,13 +99,31 @@ export const {{entityNameCap}}TableColumns: ColumnDef<{{entityNameCap}}Props | a
 
     cell: (info) => (
       <div className="flex items-center justify-center h-12 w-12 relative mx-auto">
-        <Image
+        {{#if isList }}  <Carousel className="size-full">
+          <CarouselContent className="size-full">
+            {(info?.getValue() as any).map((image: any, index: number) => (
+              <CarouselItem key={index} className="size-full p-[0.1rem]">
+                <Image
+                  src={image?.url || "/Abs1.jpg"}
+                  alt={`multiple_imagess_${index}`}
+                  className="size-full rounded-2xl"
+                  width={100}
+                  height={100}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="scale-[0.6] hover:scale-[0.8] -left-8" />
+          <CarouselNext  className="scale-[0.6] hover:scale-[0.8] -right-8"/>
+        </Carousel>
+        {{ else }}<Image
             src={(info?.getValue() as any)?.url || "/Abs1.jpg"}
             alt="{{name}}"
             className="size-full rounded-2xl"
             width={100}
             height={100}
           />
+        {{/if}}
       </div>
     ),
     minSize: 10,
