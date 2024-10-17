@@ -30,6 +30,7 @@ import SuffixClearInput from "@/components/Public/SuffixClearInput";
 import DatePickerV2 from "@/components/ui/date-picker-v2";
 import ImageUpload from "@/components/ui/image-upload";
 import { Combobox } from "@/components/ui/combobox";
+import MultipleImageUpload from "@/components/ui/multiple-image-upload";
 {{#each fieldsChunks as |chunk|}}{{#each chunk as |field|}}
 {{#if field.isRelation}}  
 import { getAll{{capitalize field.relationWith}} } from "@/utils/{{field.relationWith}}-api";
@@ -124,7 +125,7 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
             {{#each fieldsChunks as |chunk|}}
               <Card className="w-full flex flex-col gap-2">
                 {{#each chunk as |field|}}  
-                  {{#if (or field.isId (or (eq field.name "created_at") (eq field.name "updated_at")))}}
+                  {{#if (or field.isList (or (eq field.type "unknown") field.isId))}}
                   {{else}}
                     <FormField
                       control={form.control}
@@ -192,19 +193,28 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
             {{#if imageFields}} 
              <Card className="w-full flex flex-col gap-2">
                {{#each imageFields}}
-                 <FormField
+               {{#if (eq type "unknwon")}}{{else}}<FormField
                       control={form.control}
                       name="{{name}}"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel required={false} className="capitalize">{{kebabToCamel name}}</FormLabel>
                           <FormControl>
+                            {{#if isList}}
+                            <MultipleImageUpload
+                              max={5}
+                              onChange={field.onChange}
+                              value={field.value}
+                            />
+                            {{else}}
                              <ImageUpload onChange={(e) => field.onChange(e)} value={field.value} />
+                            {{/if }}
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                {{/if}}
                {{/each}}
              </Card>
              {{/if}}
