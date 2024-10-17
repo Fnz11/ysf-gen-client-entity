@@ -152,6 +152,21 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                                 {{#if (eq field.relType "m-m")}}
                                 multiple
                                 alwaysOpen
+                                getInitialData={async () => {
+                                  const res = await getAll{{kebabOrSnakeToPascalCase field.relationWith}}({
+                                    {{field.relationToField}}_or:
+                                      initData?.{{field.relationWith}}
+                                        ?.map((item: any) => item?.{{field.relationToField}})
+                                        .join(",") || "",
+                                  });
+                                  const finalData = res.data.data.{{ field.relationWith }}.map(
+                                    (item: any) => ({
+                                      value: item?.{{field.relationToField}},
+                                      label: item?.{{field.relationToField}},
+                                    })
+                                  );
+                                  return finalData;
+                                } }
                                 {{/if}}getData={async (search) => {
                                   const res = await getAll{{kebabOrSnakeToPascalCase field.relationWith}}({ {{ field.relationSearch }}: search }); 
                                   const finalData = res.data.data.{{ field.relationWith }}.map(
