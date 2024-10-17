@@ -32,7 +32,7 @@ import ImageUpload from "@/components/ui/image-upload";
 import { Combobox } from "@/components/ui/combobox";
 import MultipleImageUpload from "@/components/ui/multiple-image-upload";
 {{#each fieldsChunks as |chunk|}}{{#each chunk as |field|}}
-{{#if field.isRelation}}  
+{{#if field.relType}}  
 import { getAll{{kebabOrSnakeToPascalCase field.relationWith}} } from "@/utils/{{field.relationWith}}-api";
 {{/if}}
 {{/each}}{{/each}}
@@ -146,7 +146,7 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                         <FormItem>
                           <FormLabel required={false} className="capitalize">{{kebabToCamel field.name}}</FormLabel>
                           <FormControl>
-                            {{#if (or field.isRelation field.relType) }}
+                            {{#if field.relType }}
                               <Combobox
                                 id="{{field.name}}"
                                 {{#if (eq field.relType "m-m")}}
