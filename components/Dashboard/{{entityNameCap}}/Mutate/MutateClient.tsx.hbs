@@ -46,11 +46,23 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
   // 1. Define your form.
   const form = useForm<Mutate{{entityNameCap}}SchemaProps>({
     resolver: zodResolver(mutate{{entityNameCap}}Schema),
+    defaultValues: {
+      {{#each imageFields}}
+      {{#if isList}}
+      {{name}}: [],
+      {{/if}}{{/each }}
+    }
   });
 
   useEffect(() => {
     if (initData) {
-      form.reset(initData);
+      form.reset({
+        ...initData,
+        {{#each imageFields}}
+        {{#if isList}}
+        {{name}}: initData.{{name}}?.map((item: any) => item.url),
+        {{/if}}{{/each }}
+      });
     }
   }, [initData, form]);
 
