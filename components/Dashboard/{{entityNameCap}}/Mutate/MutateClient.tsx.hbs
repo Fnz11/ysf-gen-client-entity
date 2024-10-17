@@ -137,7 +137,7 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
             {{#each fieldsChunks as |chunk|}}
               <Card className="w-full flex flex-col gap-2">
                 {{#each chunk as |field|}}  
-                  {{#if (or field.isList (or (eq field.type "unknown") field.isId))}}
+                  {{#if (or (eq field.type "unknown") field.isId)}}
                   {{else}}
                     <FormField
                       control={form.control}
