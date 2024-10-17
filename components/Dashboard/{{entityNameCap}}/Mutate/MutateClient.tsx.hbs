@@ -33,7 +33,7 @@ import { Combobox } from "@/components/ui/combobox";
 import MultipleImageUpload from "@/components/ui/multiple-image-upload";
 {{#each fieldsChunks as |chunk|}}{{#each chunk as |field|}}
 {{#if field.isRelation}}  
-import { getAll{{capitalize field.relationWith}} } from "@/utils/{{field.relationWith}}-api";
+import { getAll{{kebabOrSnakeToPascalCase field.relationWith}} } from "@/utils/{{field.relationWith}}-api";
 {{/if}}
 {{/each}}{{/each}}
 
@@ -153,7 +153,7 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                                 multiple
                                 alwaysOpen
                                 {{/if}}getData={async (search) => {
-                                  const res = await getAll{{capitalize field.relationWith}}({ {{ field.relationSearch }}: search }); 
+                                  const res = await getAll{{kebabOrSnakeToPascalCase field.relationWith}}({ {{ field.relationSearch }}: search }); 
                                   const finalData = res.data.data.{{ field.relationWith }}.map(
                                     (item: any) => ({
                                       value: item?.{{field.relationToField}},
