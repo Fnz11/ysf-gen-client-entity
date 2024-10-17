@@ -14,7 +14,7 @@ export type Mutate{{ entityNameCap }}SchemaProps = z.infer<typeof mutate{{ entit
 
 // GET ALL
 export const getAll{{ entityNameCap }} = async ({
-    {{idName}}_or,
+    {{../idName}}_or,
     {{#each fieldsFilter}}
     {{key}},
     {{/each}} 
@@ -24,7 +24,7 @@ export const getAll{{ entityNameCap }} = async ({
   const url = getUrlFilter({
     base: "/{{ entityName }}",
     {{#each fieldsFilter}}
-    {{idName}}_or,
+    {{../idName}}_or,
     {{key}}: {{#if (eq type "Date")}}{{key}} ? new Date({{key}})?.toLocaleDateString() : null{{else if (eq type "string")}}{{key}}?.trim(){{else}}{{key}}{{/if}},
     {{/each}} 
   });
