@@ -23,7 +23,7 @@ export const getAll{{ entityNameCap }} = async ({
 ) => {
   const url = getUrlFilter({
     base: "/{{ entityName }}",
-    {{../idName}}_or,
+    {{idName}}_or,
     {{#each fieldsFilter}}
     {{key}}: {{#if (eq type "Date")}}{{key}} ? new Date({{key}})?.toLocaleDateString() : null{{else if (eq type "string")}}{{key}}?.trim(){{else}}{{key}}{{/if}},
     {{/each}} 
