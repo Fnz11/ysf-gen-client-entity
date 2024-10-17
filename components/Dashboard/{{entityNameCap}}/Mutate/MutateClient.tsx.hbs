@@ -153,6 +153,11 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                                 multiple
                                 alwaysOpen
                                 getInitialData={async () => {
+                                  if (
+                                    !initData?.{{field.relationWith}} ||
+                                    initData?.{{field.relationWith}}?.length == 0
+                                  )
+                                    return [];
                                   const res = await getAll{{kebabOrSnakeToPascalCase field.relationWith}}({
                                     {{field.relationToField}}_or:
                                       initData?.{{field.relationWith}}
