@@ -202,7 +202,7 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                                   return finalData;
                                 } }
                                 onChange={(value) => field.onChange(value)}
-                                value={field.value}
+                                value={field.value as any}
                                 
                                 placeholder="Enter {{ field.relationSearch }} here"
                               />
