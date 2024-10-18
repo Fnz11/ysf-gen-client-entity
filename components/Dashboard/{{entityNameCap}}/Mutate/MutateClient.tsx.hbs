@@ -50,12 +50,14 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
       {{#each imageFields}}
       {{#if isList}}
       {{name}}: [],
-      {{/if}}{{/each }}
+      {{/if}}
+      {{/each }}
       {{#each fieldsChunks as |chunk|}}{{#each chunk as |field|}}
       {{#if field.isList}}
       {{field.name}}: [],
       {{/if}}
-      {{/each}}{{/each}}
+      {{/each}}
+      {{/each}}
     }
   });
 
@@ -69,7 +71,11 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
         {{/if}}{{/each }}
         {{#each fieldsChunks as |chunk|}}{{#each chunk as |field|}}
         {{#if field.relType}}
+        {{#if field.islIst}}
         {{field.name}}: initData.{{field.name}}?.map((item: any) => item.{{field.relationToField}}),
+        {{else}}
+        {{field.name}}: initData.{{field.name}}?.{{field.relationToField}},
+        {{/if}}
         {{/if}}
         {{/each}}{{/each}}
       });
