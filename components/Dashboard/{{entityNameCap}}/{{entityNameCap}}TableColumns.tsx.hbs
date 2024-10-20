@@ -137,8 +137,8 @@ export const {{entityNameCap}}TableColumns: ColumnDef<{{entityNameCap}}Props | a
     header: (info) => <SortedHeadTable info={info} title="{{kebabToCamel name}}" />,
 
     cell: (info) => (
-      <div className="gap-2 font-medium {{#if (eq name ../idName)}}truncate w-28 flex{{/if}}">
-        {{#if (eq name ../idName)}} <span>
+      <div className="gap-2 font-medium {{#if (or (eq name ../idName) isForeignKey)}}truncate w-28 flex{{/if}}">
+       {{#if (or (eq name ../idName) isForeignKey)}} <span>
           <Copy data={info.getValue() as string} />
         </span>{{/if}}{ {{#if (or (eq type "DateTime") (eq type "Date"))}}new Date(info.getValue() as string)?.toLocaleDateString(){{else}}info.getValue() as string{{/if}} }</div>
     ),
