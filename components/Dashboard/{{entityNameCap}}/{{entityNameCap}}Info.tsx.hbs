@@ -109,7 +109,7 @@ const Data{{entityNameCap}}InfoContent: React.FC<Data{{entityNameCap}}InfoProps>
         <Separator />
         
          {{#each fields}}
-         {{#if (eq type "unknown")}}{{else}}
+         {{#if (eq type "any")}}{{else}}
           {/* {{kebabToCamel name }} */}
           <h1 className="w-full flex justify-between">
             <span className="text-foreground/50 capitalize">{{kebabToCamel name}}</span>
