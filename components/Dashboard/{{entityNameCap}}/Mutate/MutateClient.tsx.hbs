@@ -68,7 +68,10 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
         {{#each imageFields}}
         {{#if isList}}
         {{name}}: initData.{{name}}?.map((item: any) => item.url),
-        {{/if}}{{/each }}
+        {{else}}
+        {{name}}: initData.{{name}}?.url,
+        {{/if}}
+        {{/each }}
         {{#each fieldsChunks as |chunk|}}{{#each chunk as |field|}}
         {{#if field.relType}}
         {{#if field.islIst}}
