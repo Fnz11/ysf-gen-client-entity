@@ -259,10 +259,10 @@ const MutateClient: React.FC<MutateClientProps> = ({ data: initData }) => {
                             <MultipleImageUpload
                               max={5}
                               onChange={field.onChange}
-                              value={field.value}
+                              value={field.value as string[]}
                             />
                             {{else}}
-                             <ImageUpload onChange={(e) => field.onChange(e)} value={field.value} />
+                             <ImageUpload onChange={(e) => field.onChange(e)} value={field.value as string} />
                             {{/if }}
                           </FormControl>
                           <FormMessage />
